@@ -9,8 +9,8 @@ services:
     - docker
 
 before_install:
-    - docker build -t jekkos/opensourcepos .
-    - docker run -d jekkos/opensourcepos 
+    - docker build -t bnurzhanov/opensourcepos .
+    - docker run -d bnurzhanov/opensourcepos 
 
 script:
     - docker exec -t -i $(docker ps | tail -n 1 | cut -d' ' -f1) /bin/sh -c "while ! curl http://localhost/index.php | grep username; do sleep 1; done; cd app && grunt mochaWebdriver:test" 

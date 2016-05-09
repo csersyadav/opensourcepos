@@ -13,7 +13,7 @@ RUN apt-get install -y --no-install-recommends software-properties-common
 RUN apt-get install -y python git
 
 # Get latest Ospos source from Git
-RUN git clone https://github.com/jekkos/opensourcepos.git /app
+RUN git clone https://github.com/bnurzhanov/opensourcepos.git /app
 #RUN cd app && git checkout origin/master
 RUN cd app && git checkout -b 2.4 2.4
 RUN ln -s /usr/bin/nodejs /usr/bin/node
