@@ -24,5 +24,5 @@ RUN ln -s /usr/local/bin/grunt /usr/bin/grunt
 RUN ln -fs /app/* /var/www/html
 ADD ./docker/start_container.sh /start_container.sh
 RUN chmod 755 /start_container.sh
-EXPOSE 80 3306
+EXPOSE 8888 3306
 CMD ["/bin/bash", "/start_container.sh"]
