@@ -1,5 +1,5 @@
 FROM ubuntu:utopic
-MAINTAINER jekkos
+MAINTAINER bnurzhanov
 RUN sed -i -e 's/archive.ubuntu.com\|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get -y upgrade
@@ -14,7 +14,8 @@ RUN apt-get install -y python git
 
 # Get latest Ospos source from Git
 RUN git clone https://github.com/jekkos/opensourcepos.git /app
-RUN cd app && git checkout origin/master
+#RUN cd app && git checkout origin/master
+RUN cd app && git checkout -b 2.4 2.4
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN cd app && npm install
 RUN npm install -g grunt-cli
