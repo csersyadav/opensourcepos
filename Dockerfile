@@ -14,8 +14,8 @@ RUN apt-get install -y python git
 
 # Get latest Ospos source from Git
 RUN git clone https://github.com/bnurzhanov/opensourcepos.git /app
-#RUN cd app && git checkout origin/master
-RUN cd app && git checkout -b 2.4 2.4
+RUN cd app && git checkout origin/master
+#RUN cd app && git checkout -b 2.4 2.4
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 #RUN cd app && npm install
 #RUN npm install -g grunt-cli
@@ -24,5 +24,5 @@ RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN ln -fs /app/* /var/www/html
 ADD ./docker/start_container.sh /start_container.sh
 RUN chmod 755 /start_container.sh
-EXPOSE 8888 3306
+EXPOSE 80 3306
 CMD ["/bin/bash", "/start_container.sh"]
