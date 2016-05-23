@@ -1,0 +1,842 @@
+Only in opensourcepos: .git
+Only in opensourcepos: 2.3-with-current-pos-prod.patch
+diff -rBwi --ignore-file-name-case -u pos-prod/application/config/config.php opensourcepos/application/config/config.php
+--- pos-prod/application/config/config.php	2016-05-05 19:39:48.000000000 -0700
++++ opensourcepos/application/config/config.php	2016-05-23 15:30:07.640010173 -0700
+@@ -204,7 +204,7 @@
+ | application/logs/ folder. Use a full server path with trailing slash.
+ |
+ */
+-$config['log_path'] = '/tmp/';
++$config['log_path'] = '';
+ 
+ /*
+ |--------------------------------------------------------------------------
+@@ -258,14 +258,14 @@
+ |
+ */
+ $config['sess_cookie_name']		= 'ci_session';
+-$config['sess_expiration']		= 0; // 14400
++$config['sess_expiration']		= 0;
+ $config['sess_expire_on_close']	= FALSE;
+ $config['sess_encrypt_cookie']	= FALSE;
+ $config['sess_use_database']	= TRUE;
+ $config['sess_table_name']		= 'ospos_sessions';
+ $config['sess_match_ip']		= FALSE;
+-$config['sess_match_useragent']	= FALSE; // TRUE
+-$config['sess_time_to_update']	= 86400; // 300
++$config['sess_match_useragent']	= FAlSE;
++$config['sess_time_to_update']	= 86400;
+ 
+ /*
+ |--------------------------------------------------------------------------
+Only in pos-prod/application/config: database.php
+diff -rBwi --ignore-file-name-case -u pos-prod/application/controllers/home.php opensourcepos/application/controllers/home.php
+--- pos-prod/application/controllers/home.php	2014-10-08 15:42:07.000000000 -0700
++++ opensourcepos/application/controllers/home.php	2016-05-23 15:30:07.641010158 -0700
+@@ -15,7 +15,6 @@
+ 	
+ 	function logout()
+ 	{
+-		log_message('error','Logging out');
+ 		$this->Employee->logout();
+ 	}
+ }
+diff -rBwi --ignore-file-name-case -u pos-prod/application/controllers/items.php opensourcepos/application/controllers/items.php
+--- pos-prod/application/controllers/items.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/controllers/items.php	2016-05-23 15:30:07.641010158 -0700
+@@ -190,20 +190,10 @@
+ 	{
+ 		$data['item_info']=$this->Item->get_info($item_id);
+ 		$data['item_tax_info']=$this->Item_taxes->get_info($item_id);
+-
+-		$categories_rs = $this->Item->get_category_suggestions($this->input->post('q'));
+-		$categories = array();
+-		foreach($categories_rs as $category)
+-		{
+-			$categories[$category] = $category;
+-		}
+-		$data['categories']=$categories;
+-		$data['selected_category']=$this->Item->get_info($item_id)->category;
+ 		$suppliers = array('' => $this->lang->line('items_none'));
+ 		foreach($this->Supplier->get_all()->result_array() as $row)
+ 		{
+-			//$suppliers[$row['person_id']] = $row['company_name'] .' ('.$row['first_name'] .' '. $row['last_name'].')';
+-			$suppliers[$row['person_id']] = $row['first_name'] .' '. $row['last_name'];
++			$suppliers[$row['person_id']] = $row['company_name'] .' ('.$row['first_name'] .' '. $row['last_name'].')';
+ 		}
+ 
+ 		$data['suppliers']=$suppliers;
+@@ -608,7 +599,7 @@
+ 	*/
+ 	function get_form_width()
+ 	{
+-		return 560;
++		return 360;
+ 	}
+     
+     function is_sale_store_item($item_number)
+Only in pos-prod/application/controllers: items.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/controllers/receivings.php opensourcepos/application/controllers/receivings.php
+--- pos-prod/application/controllers/receivings.php	2016-05-05 18:59:56.000000000 -0700
++++ opensourcepos/application/controllers/receivings.php	2016-05-23 15:30:07.642010143 -0700
+@@ -86,7 +86,6 @@
+     	$description = $this->input->post("description");
+     	$serialnumber = $this->input->post("serialnumber");
+ 		$price = $this->input->post("price");
+-		$unit_price = $this->input->post("unit_price");
+ 		$quantity = $this->input->post("quantity");
+                 $discount = $this->input->post("discount");
+                 $item_location = $this->input->post("location");
+@@ -163,11 +162,6 @@
+ 		{
+ 			$suppl_info=$this->Supplier->get_info($supplier_id);
+ 			$data['supplier']=$suppl_info->first_name.' '.$suppl_info->last_name;
+-			$data['supplier_2']=$suppl_info->address_1;
+-			$data['supplier_3']=$suppl_info->city.', '.$suppl_info->state.' '.$suppl_info->zip;
+-			if ( $data['supplier_3'] == ',  ' ) $data['supplier_3'] = '';
+-			$data['supplier_4']=$suppl_info->phone_number;
+-			$data['supplier_5']=$suppl_info->account_number;
+ 		}
+ 
+ 		//SAVE receiving to database
+@@ -261,11 +255,7 @@
+ 			$this->lang->line('sales_cash') => $this->lang->line('sales_cash'),
+ 			$this->lang->line('sales_check') => $this->lang->line('sales_check'),
+ 			$this->lang->line('sales_debit') => $this->lang->line('sales_debit'),
+-			$this->lang->line('sales_credit') => $this->lang->line('sales_credit'),
+-			$this->lang->line('sales_layaway_bal') => $this->lang->line('sales_layaway_bal'),
+-			$this->lang->line('sales_oos_pmt') => $this->lang->line('sales_oos_pmt'),
+-			$this->lang->line('sales_deposit') => $this->lang->line('sales_deposit'),
+-			$this->lang->line('sales_house_acct') => $this->lang->line('sales_house_acct')
++			$this->lang->line('sales_credit') => $this->lang->line('sales_credit')
+ 		);
+ 
+ 		$supplier_id=$this->receiving_lib->get_supplier();
+Only in pos-prod/application/controllers: receivings.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/controllers/reports.php opensourcepos/application/controllers/reports.php
+--- pos-prod/application/controllers/reports.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/controllers/reports.php	2016-05-23 15:30:07.642010143 -0700
+@@ -308,17 +308,8 @@
+ 	
+     function date_input_recv()
+     {
+-	    //log_message('error',print_r($this,true));
+         $data = $this->_get_common_report_data();
+-	    $data['specific_input_name'] = "Suppliers";
+         $data['mode'] = 'receiving';
+-	    $suppliers = array();
+-	    $suppliers[-1]=' ';
+-	    foreach($this->Supplier->get_all()->result() as $supplier)
+-	    {
+-		    $suppliers[$supplier->person_id]=$supplier->first_name." ".$supplier->last_name;
+-	    }
+-	    $data['specific_input_data']=$suppliers;
+         $this->load->view("reports/date_input",$data);  
+     }
+     
+@@ -852,13 +843,13 @@
+ 		$this->load->view("reports/tabular_details",$data);
+ 	}
+ 	
+-	function detailed_receivings($start_date, $end_date, $receiving_type, $supplier_id, $export_excel=0)
++	function detailed_receivings($start_date, $end_date, $receiving_type, $export_excel=0)
+ 	{
+ 		$this->load->model('reports/Detailed_receivings');
+ 		$model = $this->Detailed_receivings;
+ 		
+ 		$headers = $model->getDataColumns();
+-		$report_data = $model->getData(array('start_date'=>$start_date, 'end_date'=>$end_date, 'receiving_type' => $receiving_type, 'supplier_id' => $supplier_id));
++		$report_data = $model->getData(array('start_date'=>$start_date, 'end_date'=>$end_date, 'receiving_type' => $receiving_type));
+ 		
+ 		$summary_data = array();
+ 		$details_data = array();
+@@ -879,7 +870,7 @@
+ 			"headers" => $model->getDataColumns(),
+ 			"summary_data" => $summary_data,
+ 			"details_data" => $details_data,
+-			"overall_summary_data" => $model->getSummaryData(array('start_date'=>$start_date, 'end_date'=>$end_date, 'receiving_type' => $receiving_type, 'supplier_id' => $supplier_id)),
++			"overall_summary_data" => $model->getSummaryData(array('start_date'=>$start_date, 'end_date'=>$end_date, 'receiving_type' => $receiving_type)),
+ 			"export_excel" => $export_excel
+ 		);
+ 
+Only in pos-prod/application/controllers: reports.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/controllers/sales.php opensourcepos/application/controllers/sales.php
+--- pos-prod/application/controllers/sales.php	2016-05-05 18:59:56.000000000 -0700
++++ opensourcepos/application/controllers/sales.php	2016-05-23 15:30:07.642010143 -0700
+@@ -89,11 +90,11 @@
+ 				$this->_reload($data);
+ 				return;
+ 			}
+-			elseif ( ( $this->Giftcard->get_giftcard_value( $this->input->post('amount_tendered') ) - $this->sale_lib->get_total() ) > 0 )
+-			{
+-				$data['warning']='Giftcard balance is '.to_currency( $this->Giftcard->get_giftcard_value( $this->input->post('amount_tendered') ) - $this->sale_lib->get_total() ).' !';
+-			}
+-			$payment_amount=min( $this->sale_lib->get_total(), $this->Giftcard->get_giftcard_value( $this->input->post('amount_tendered') ) );
++
++			$new_giftcard_value = $this->Giftcard->get_giftcard_value( $this->input->post( 'amount_tendered' ) ) - $this->sale_lib->get_amount_due( );
++			$new_giftcard_value = ( $new_giftcard_value >= 0 ) ? $new_giftcard_value : 0;
++			$data['warning'] = 'Giftcard ' . $this->input->post( 'amount_tendered' ) . ' balance is ' . to_currency( $new_giftcard_value ) . ' !';
++			$payment_amount = min( $this->sale_lib->get_amount_due( ), $this->Giftcard->get_giftcard_value( $this->input->post( 'amount_tendered' ) ) );
+ 		}
+ 		else
+ 		{
+@@ -386,11 +387,7 @@
+ 			$this->lang->line('sales_check') => $this->lang->line('sales_check'),
+ 			$this->lang->line('sales_giftcard') => $this->lang->line('sales_giftcard'),
+ 			$this->lang->line('sales_debit') => $this->lang->line('sales_debit'),
+-			$this->lang->line('sales_credit') => $this->lang->line('sales_credit'),
+-			$this->lang->line('sales_layaway_bal') => $this->lang->line('sales_layaway_bal'),
+-			$this->lang->line('sales_oos_pmt') => $this->lang->line('sales_oos_pmt'),
+-			$this->lang->line('sales_deposit') => $this->lang->line('sales_deposit'),
+-			$this->lang->line('sales_house_acct') => $this->lang->line('sales_house_acct')
++			$this->lang->line('sales_credit') => $this->lang->line('sales_credit')
+ 		);
+ 
+ 		$customer_id=$this->sale_lib->get_customer();
+diff -rBwi --ignore-file-name-case -u pos-prod/application/helpers/table_helper.php opensourcepos/application/helpers/table_helper.php
+--- pos-prod/application/helpers/table_helper.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/helpers/table_helper.php	2016-05-23 15:30:07.643010127 -0700
+@@ -87,10 +87,9 @@
+ 	$table='<table class="tablesorter" id="sortable_table">';
+ 	
+ 	$headers = array('<input type="checkbox" id="select_all" />',
+-	//$CI->lang->line('suppliers_company_name'),
+-	//$CI->lang->line('common_last_name'),
+-	//$CI->lang->line('common_first_name'),
+-	"Name",
++	$CI->lang->line('suppliers_company_name'),
++	$CI->lang->line('common_last_name'),
++	$CI->lang->line('common_first_name'),
+ 	$CI->lang->line('common_email'),
+ 	$CI->lang->line('common_phone_number'),
+ 	'&nbsp');
+@@ -135,9 +134,9 @@
+ 
+ 	$table_data_row='<tr>';
+ 	$table_data_row.="<td width='5%'><input type='checkbox' id='person_$supplier->person_id' value='".$supplier->person_id."'/></td>";
+-	//$table_data_row.='<td width="17%">'.character_limiter($supplier->company_name,13).'</td>';
+-	//$table_data_row.='<td width="17%">'.character_limiter($supplier->last_name,13).'</td>';
+-	$table_data_row.='<td width="34%">'.character_limiter($supplier->first_name." ".$supplier->last_name,26).'</td>';
++	$table_data_row.='<td width="17%">'.character_limiter($supplier->company_name,13).'</td>';
++	$table_data_row.='<td width="17%">'.character_limiter($supplier->last_name,13).'</td>';
++	$table_data_row.='<td width="17%">'.character_limiter($supplier->first_name,13).'</td>';
+ 	$table_data_row.='<td width="22%">'.mailto($supplier->email,character_limiter($supplier->email,22)).'</td>';
+ 	$table_data_row.='<td width="17%">'.character_limiter($supplier->phone_number,13).'</td>';		
+ 	$table_data_row.='<td width="5%">'.anchor($controller_name."/view/$supplier->person_id/width:$width", $CI->lang->line('common_edit'),array('class'=>'thickbox','title'=>$CI->lang->line($controller_name.'_update'))).'</td>';		
+Only in pos-prod/application/language: Azerbaijan
+Only in pos-prod/application/language: BahasaIndonesia
+Only in pos-prod/application/language/en: config_lang.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/language/en/sales_lang.php opensourcepos/application/language/en/sales_lang.php
+--- pos-prod/application/language/en/sales_lang.php	2016-05-05 18:59:56.000000000 -0700
++++ opensourcepos/application/language/en/sales_lang.php	2016-05-23 15:30:07.644010113 -0700
+@@ -42,10 +42,6 @@
+ $lang['sales_debit'] = 'Debit Card';
+ $lang['sales_credit'] = 'Credit Card';
+ $lang['sales_giftcard'] = 'Gift Card';
+-$lang['sales_oos_pmt'] = 'OOS PMT';
+-$lang['sales_house_acct'] = 'House Account';
+-$lang['sales_layaway_bal'] = 'Layaway Bal';
+-$lang['sales_deposit'] = 'Deposit';
+ $lang['sales_amount_tendered'] = 'Amount Tendered';
+ $lang['sales_change_due'] = 'Change Due';
+ $lang['sales_payment_not_cover_total'] = 'Payment Amount does not cover Total';
+@@ -71,11 +67,11 @@
+ $lang['sales_suspend_sale'] = 'Suspend Sale';
+ $lang['sales_confirm_suspend_sale'] = 'Are you sure you want to suspend this sale?';
+ $lang['sales_suspended_sales'] = 'Suspended Sales';
+-$lang['sales_suspended_sale_id'] = 'Suspended Sale ID';
++$lang['sales_suspended_sale_id'] = 'ID';
+ $lang['sales_date'] = 'Date';
+ $lang['sales_customer'] = 'Customer';
+ $lang['sales_comments'] = 'Comments';
+-$lang['sales_unsuspend_and_delete'] = 'Unsuspend and Delete';
++$lang['sales_unsuspend_and_delete'] = '';
+ $lang['sales_unsuspend'] = 'Unsuspend';
+ $lang['sales_successfully_suspended_sale'] = 'Your sale has been successfully suspended';
+ $lang['sales_email_receipt'] = 'E-Mail Receipt';
+@@ -90,5 +86,4 @@
+ 
+ $lang['sales_stock_location']='Stock location';
+ $lang['sales_sale']='Sale';
+-$lang['sales_no_description']='';
+ ?>
+Only in pos-prod/application/language/en: sales_lang.php.rej
+Only in pos-prod/application/language: english
+Only in pos-prod/application/language: indonesia
+Only in pos-prod/application/language: Russian
+Only in pos-prod/application/language: Spanish
+Only in pos-prod/application/language: spanish
+diff -rBwi --ignore-file-name-case -u pos-prod/application/libraries/MY_Language.php opensourcepos/application/libraries/MY_Language.php
+--- pos-prod/application/libraries/MY_Language.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/libraries/MY_Language.php	2016-05-23 15:30:07.652009992 -0700
+@@ -24,29 +24,3 @@
+ }
+ 
+ ?>
+-<?php
+-class MY_Language extends CI_Language
+-{
+-    function MY_Language()
+-    {
+-        parent::CI_Language();
+-    }
+-    
+-    function switch_to($idiom)
+-    {
+-        $CI =& get_instance();
+-        if(is_string($idiom))
+-        {
+-            $CI->config->set_item('language',$idiom);
+-            $loaded = $this->is_loaded;
+-            $this->is_loaded = array();
+-                
+-            foreach($loaded as $file)
+-            {
+-                $this->load(str_replace('_lang.php','',$file));    
+-            }
+-        }
+-    }
+-}
+-
+-?>
+Only in pos-prod/application/libraries/ofc-library: ofc_upload_image.php
+diff -rBwi --ignore-file-name-case -u pos-prod/application/libraries/Receiving_lib.php opensourcepos/application/libraries/Receiving_lib.php
+--- pos-prod/application/libraries/Receiving_lib.php	2014-10-08 21:43:10.000000000 -0700
++++ opensourcepos/application/libraries/Receiving_lib.php	2016-05-23 15:30:07.652009992 -0700
+@@ -150,9 +150,7 @@
+                         'quantity'=>$quantity,
+              'discount'=>$discount,
+                         'in_stock'=>$this->CI->Item_quantities->get_item_quantity($item_id, $item_location)->quantity,
+-                        //'price'=>$price!=null ? $price: $item_info->cost_price,
+-						'price'=>$price!=null ? $price: $this->CI->Item->get_info($item_id)->cost_price,
+-			'unit_price' => $this->CI->Item->get_info($item_id)->unit_price
++			'price'=>$price!=null ? $price: $item_info->cost_price
+                         )
+ 		);
+ 
+Only in pos-prod/application/libraries: Receiving_lib.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/models/receiving.php opensourcepos/application/models/receiving.php
+--- pos-prod/application/models/receiving.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/models/receiving.php	2016-05-23 15:30:07.655009947 -0700
+@@ -53,14 +53,8 @@
+ 				'item_unit_price'=>$item['price'],
+ 				'item_location'=>$item['item_location']
+ 			);
++
+ 			$this->db->insert('receivings_items',$receivings_items_data);
+-			// Update Receivings -> Items Receiving screen to allow cost field from screen to update item cost in database
+-			$items_data = array
+-			(
+-				'item_id'=>$item['item_id'],
+-				'cost_price'=>$item['price']
+-			);
+-			$this->Item->save($items_data,$item['item_id']);
+ 
+ 			//Update stock quantity
+ 			$item_quantity = $this->Item_quantities->get_item_quantity($item['item_id'], $item['item_location']);		
+@@ -88,10 +82,9 @@
+ 		
+ 		if ($this->db->trans_status() === FALSE)
+ 		{
+-			//file_put_contents("./tmp/logfile","TRANS FAILED",FILE_APPEND);
+ 			return -1;
+ 		}
+-//file_put_contents("./tmp/logfile","TRANS SUCCEEDED",FILE_APPEND);
++
+ 		return $receiving_id;
+ 	}
+ 
+diff -rBwi --ignore-file-name-case -u pos-prod/application/models/reports/detailed_receivings.php opensourcepos/application/models/reports/detailed_receivings.php
+--- pos-prod/application/models/reports/detailed_receivings.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/models/reports/detailed_receivings.php	2016-05-23 15:30:07.655009947 -0700
+@@ -16,16 +16,11 @@
+ 	
+ 	public function getData(array $inputs)
+ 	{
+-		$supplier_id = $inputs['supplier_id'];
+ 		$this->db->select('receiving_id, receiving_date, sum(quantity_purchased) as items_purchased, CONCAT(employee.first_name," ",employee.last_name) as employee_name, CONCAT(supplier.first_name," ",supplier.last_name) as supplier_name, sum(total) as total, sum(profit) as profit, payment_type, comment', false);
+ 		$this->db->from('receivings_items_temp');
+ 		$this->db->join('people as employee', 'receivings_items_temp.employee_id = employee.person_id');
+ 		$this->db->join('people as supplier', 'receivings_items_temp.supplier_id = supplier.person_id', 'left');
+ 		$this->db->where('receiving_date BETWEEN "'. $inputs['start_date']. '" and "'. $inputs['end_date'].'"');
+-		if ($supplier_id != -1)
+-		{
+-			$this->db->where('receivings_items_temp.supplier_id = "'.$supplier_id.'"');
+-		}
+ 		if ($inputs['receiving_type'] == 'receiving')
+ 		{
+ 			$this->db->where('quantity_purchased > 0');
+@@ -59,14 +54,9 @@
+ 	
+ 	public function getSummaryData(array $inputs)
+ 	{
+-		$supplier_id = $inputs['supplier_id'];
+ 		$this->db->select('sum(total) as total');
+ 		$this->db->from('receivings_items_temp');
+ 		$this->db->where('receiving_date BETWEEN "'. $inputs['start_date']. '" and "'. $inputs['end_date'].'"');
+-		if ($supplier_id != -1)
+-		{
+-			$this->db->where('receivings_items_temp.supplier_id = "'.$supplier_id.'"');
+-		}
+ 		if ($inputs['receiving_type'] == 'receiving')
+ 		{
+ 			$this->db->where('quantity_purchased > 0');
+diff -rBwi --ignore-file-name-case -u pos-prod/application/models/sale.php opensourcepos/application/models/sale.php
+--- pos-prod/application/models/sale.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/models/sale.php	2016-05-23 15:30:07.655009947 -0700
+@@ -48,7 +48,7 @@
+ 			'payment_type'=>$payment_types,
+ 			'comment'=>$comment
+ 		);
+-		//log_message('error',print_r($sales_data,true));
++
+ 		//Run these queries as a transaction, we want to make sure we do all or nothing
+ 		$this->db->trans_start();
+ 
+@@ -131,19 +131,6 @@
+ 					));
+ 				}
+ 			}
+-			// Update items table if item_number starts with PGS or BBN
+-			if (preg_match('/^(PGS|BBN)/', $item['item_number']) == 1)
+-			{
+-				
+-				$items_data = array
+-				(
+-					'item_id'=>$item['item_id'],
+-					'unit_price'=>$item['price']
+-				);
+-				//file_put_contents("tmp/logfile",var_export($items_data,true),FILE_APPEND);
+-				$this->Item->save($items_data,$item['item_id']);
+-			}
+-
+ 		}
+ 		$this->db->trans_complete();
+ 		
+@@ -237,7 +224,7 @@
+ 		INNER JOIN ".$this->db->dbprefix('items')." ON  ".$this->db->dbprefix('sales_items').'.item_id='.$this->db->dbprefix('items').'.item_id'."
+ 		INNER JOIN (SELECT sale_id, SUM(payment_amount) AS sale_payment_amount, 
+ 		GROUP_CONCAT(payment_type SEPARATOR ', ') AS payment_type FROM " .$this->db->dbprefix('sales_payments') . " 
+-		GROUP BY sale_id) AS payments 
++		WHERE payment_type <> '" . $this->lang->line('sales_check') . "' GROUP BY sale_id) AS payments 
+ 		ON " . $this->db->dbprefix('sales_items') . '.sale_id'. "=" . "payments.sale_id		
+ 		LEFT OUTER JOIN ".$this->db->dbprefix('suppliers')." ON  ".$this->db->dbprefix('items').'.supplier_id='.$this->db->dbprefix('suppliers').'.person_id'."
+ 		LEFT OUTER JOIN ".$this->db->dbprefix('sales_items_taxes')." ON  "
+Only in pos-prod/application/models: sale.php-
+diff -rBwi --ignore-file-name-case -u pos-prod/application/models/supplier.php opensourcepos/application/models/supplier.php
+--- pos-prod/application/models/supplier.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/models/supplier.php	2016-05-23 15:30:07.656009932 -0700
+@@ -22,8 +22,7 @@
+ 		$this->db->from('suppliers');
+ 		$this->db->join('people','suppliers.person_id=people.person_id');			
+ 		$this->db->where('deleted', 0);
+-		//$this->db->order_by("last_name", "asc");
+-		$this->db->order_by("first_name", "asc");
++		$this->db->order_by("last_name", "asc");
+ 		$this->db->limit($limit);
+ 		$this->db->offset($offset);
+ 		return $this->db->get();		
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/employees/form.php opensourcepos/application/views/employees/form.php
+--- pos-prod/application/views/employees/form.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/employees/form.php	2016-05-23 15:30:07.656009932 -0700
+@@ -117,7 +117,7 @@
+ 				<?php
+ 				}
+ 				?>
+-				minlength: 4
++				minlength: 8
+ 			},	
+ 			repeat_password:
+ 			{
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/items/form.php opensourcepos/application/views/items/form.php
+--- pos-prod/application/views/items/form.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/items/form.php	2016-05-23 15:30:07.657009917 -0700
+@@ -31,7 +31,10 @@
+ <div class="field_row clearfix">
+ <?php echo form_label($this->lang->line('items_category').':', 'category',array('class'=>'required wide')); ?>
+ 	<div class='form_field'>
+-	<?php echo form_dropdown('category', $categories, $selected_category
++	<?php echo form_input(array(
++		'name'=>'category',
++		'id'=>'category',
++		'value'=>$item_info->category)
+ 	);?>
+ 	</div>
+ </div>
+@@ -363,9 +366,9 @@
+ //validation and submit handling
+ $(document).ready(function()
+ {
+-	//$("#category").autocomplete("<?php echo site_url('items/suggest_category');?>",{max:100,minChars:0,delay:10});
+-    //$("#category").result(function(event, data, formatted){});
+-	//$("#category").search();
++	$("#category").autocomplete("<?php echo site_url('items/suggest_category');?>",{max:100,minChars:0,delay:10});
++    $("#category").result(function(event, data, formatted){});
++	$("#category").search();
+ 
+ 	$("#custom1").autocomplete("<?php echo site_url('items/suggest_custom1');?>",{max:100,minChars:0,delay:10});
+     $("#custom1").result(function(event, data, formatted){});
+Only in pos-prod/application/views/items: form.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/items/manage.php opensourcepos/application/views/items/manage.php
+--- pos-prod/application/views/items/manage.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/items/manage.php	2016-05-23 15:30:07.657009917 -0700
+@@ -140,9 +140,7 @@
+ 	<?php echo form_label($this->lang->line('items_no_description_items').' '.':', 'no_description');?>
+ 	<?php echo form_checkbox(array('name'=>'no_description','id'=>'no_description','value'=>1,'checked'=> isset($no_description)?  ( ($no_description)? 1 : 0) : 0)).' | ';?>
+ 	<?php echo form_label($this->lang->line('items_search_custom_items').' '.':', 'search_custom');//GARRISON ADDED 4/21/2013?>
+-	<?php echo form_checkbox(array('name'=>'search_custom','id'=>'search_custom','value'=>1,'checked'=> isset($search_custom)?  ( ($search_custom)? 1 : 0) : 0)).' | ';//GARRISON ADDED 4/21/2013?>
+-	<?php echo form_label($this->lang->line('items_is_deleted').' '.':', 'is_deleted');// Parq 131215?> 
+-	<?php echo form_checkbox(array('name'=>'is_deleted','id'=>'is_deleted','value'=>1,'checked'=> isset($is_deleted)?  ( ($is_deleted)? 1 : 0) : 0));// Parq 131215?>  
++	<?php echo form_checkbox(array('name'=>'search_custom','id'=>'search_custom','value'=>1,'checked'=> isset($search_custom)?  ( ($search_custom)? 1 : 0) : 0));//GARRISON ADDED 4/21/2013?>  
+ 	<input type="hidden" name="search_section_state" id="search_section_state" value="<?php echo isset($search_section_state)?  ( ($search_section_state)? 'block' : 'none') : 'none';?>" />
+ 	</form>
+ </div>
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/people/manage.php opensourcepos/application/views/people/manage.php
+--- pos-prod/application/views/people/manage.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/people/manage.php	2016-05-23 15:30:07.657009917 -0700
+@@ -5,7 +5,7 @@
+     init_table_sorting();
+     enable_select_all();
+     enable_row_selection();
+-    enable_search('<?php echo site_url("$controller_name/suggest")?>','<?php echo $this->lang->line("common_confirm_search")?>',false);
++    enable_search('<?php echo site_url("$controller_name/suggest")?>','<?php echo $this->lang->line("common_confirm_search")?>');
+     enable_email('<?php echo site_url("$controller_name/mailto")?>');
+     enable_delete('<?php echo $this->lang->line($controller_name."_confirm_delete")?>','<?php echo $this->lang->line($controller_name."_none_selected")?>');
+ }); 
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/receivings/receipt.php opensourcepos/application/views/receivings/receipt.php
+--- pos-prod/application/views/receivings/receipt.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/receivings/receipt.php	2016-05-23 15:30:07.658009902 -0700
+@@ -18,14 +18,7 @@
+ 		<?php if(isset($supplier))
+ 		{
+ 		?>
+-			<div id="customer"><?php echo $this->lang->line('suppliers_supplier').": ".$supplier; ?><br>
+-			<?php if (!empty($supplier_2) ) echo $supplier_2."<br>"; ?>
+-			<?php if (!empty($supplier_3) ) echo $supplier_3."<br>"; ?>
+-			<?php if (!empty($supplier_4) ) echo $supplier_4."<br>"; ?>
+-			<?php if (!empty($supplier_5) ) echo "ACCT: ".$supplier_5."<br>"; ?>
+-			
+-			</div>
+-			<br>
++			<div id="customer"><?php echo $this->lang->line('suppliers_supplier').": ".$supplier; ?></div>
+ 		<?php
+ 		}
+ 		?>
+@@ -36,7 +29,7 @@
+ 	<table id="receipt_items">
+ 	<tr>
+ 	<th style="width:50%;"><?php echo $this->lang->line('items_item'); ?></th>
+-	<th style="width:17%;">Cost/Price</th>
++	<th style="width:17%;"><?php echo $this->lang->line('common_price'); ?></th>
+ 	<th style="width:16%;text-align:center;"><?php echo $this->lang->line('sales_quantity'); ?></th>
+ 	<th style="width:16%;text-align:center;"><?php echo $this->lang->line('sales_discount'); ?></th>
+ 	<th style="width:17%;text-align:right;"><?php echo $this->lang->line('sales_total'); ?></th>
+@@ -46,8 +39,8 @@
+ 	{
+ 	?>
+ 		<tr>
+-		<td><span class='long_name'><?php echo $item['name']; ?></span><span class='short_name'><?php echo character_limiter($item['name'],70); ?></span></td>
+-		<td><?php echo to_currency($item['price'])."/".to_currency($item['unit_price']); ?></td>
++		<td><span class='long_name'><?php echo $item['name']; ?></span><span class='short_name'><?php echo character_limiter($item['name'],10); ?></span></td>
++		<td><?php echo to_currency($item['price']); ?></td>
+                 <td style='text-align:center;'><?php
+                         echo $item['quantity'] . " " . ($show_stock_locations ? " [" . $item['stock_name'] . "]" : "");
+                 ?></td>
+Only in pos-prod/application/views/receivings: receipt.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/receivings/receiving.php opensourcepos/application/views/receivings/receiving.php
+--- pos-prod/application/views/receivings/receiving.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/views/receivings/receiving.php	2016-05-23 15:30:07.658009902 -0700
+@@ -63,7 +63,6 @@
+ <tr>
+         <th style="width:11%;"><?php echo $this->lang->line('common_delete'); ?></th>
+         <th style="width:30%;"><?php echo $this->lang->line('recvs_item_name'); ?></th>
+-	<th>Price</th>
+         <th style="width:11%;"><?php echo $this->lang->line('recvs_cost'); ?></th>
+         <th style="width:11%;"><?php echo $this->lang->line('recvs_quantity'); ?></th>
+         <th style="width:11%;"><?php echo $this->lang->line('recvs_discount'); ?></th>
+@@ -97,8 +96,8 @@
+ 			echo $item['description'];
+       		echo form_hidden('description',$item['description']);
+ ?>
+-		<td><?php echo $item['unit_price']; ?></td>
+-<?php       if ($items_module_allowed && $mode!='requisition')
++
++<?php       if ($items_module_allowed && !$mode=='requisition')
+ 		    {
+ ?>
+ 		     <td><?php echo form_input(array('name'=>'price','value'=>$item['price'],'size'=>'6'));?></td>
+@@ -112,14 +111,13 @@
+ <?php
+ 		    }
+ ?>
+-		<?php echo form_hidden('unit_price',$item['unit_price']); ?>
+ 	    <td>
+ <?php
+             echo form_input(array('name'=>'quantity','value'=>$item['quantity'],'size'=>'2'));
+ ?>
+ 	    </td>
+ 	    
+-<?php       if ($items_module_allowed && $mode!='requisition')
++<?php       if ($items_module_allowed && !$mode=='requisition')
+ 		    {
+ ?>
+ 		    <td><?php echo form_input(array('name'=>'discount','value'=>$item['discount'],'size'=>'3'));?></td>
+Only in pos-prod/application/views/receivings: receiving.php.rej
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/reports/date_input.php opensourcepos/application/views/reports/date_input.php
+--- pos-prod/application/views/reports/date_input.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/views/reports/date_input.php	2016-05-23 15:30:07.658009902 -0700
+@@ -55,10 +55,6 @@
+     elseif($mode == 'receiving')
+     {
+     ?>
+-    <?php echo form_label($specific_input_name, 'specific_input_name_label', array('class'=>'required')); ?>
+-	<div id='report_specific_input_data'>
+-		<?php echo form_dropdown('specific_input_data',$specific_input_data, '', 'id="specific_input_data"'); ?>
+-	</div>
+         <?php echo form_label($this->lang->line('reports_receiving_type'), 'reports_receiving_type_label', array('class'=>'required')); ?>
+         <div id='report_receiving_type'>
+         <?php echo form_dropdown('receiving_type',array('all' => $this->lang->line('reports_all'), 
+@@ -90,11 +86,10 @@
+ 	$("#generate_report").click(function()
+ 	{		
+ 		var input_type = $("#input_type").val();
+-		var supplier_id = $("#specific_input_data").val();
+ 		
+ 		if ($("#simple_radio").attr('checked'))
+ 		{
+-			window.location = window.location+'/'+$("#report_date_range_simple option:selected").val() + '/' + input_type + '/' + supplier_id;
++			window.location = window.location+'/'+$("#report_date_range_simple option:selected").val() + '/' + input_type;
+ 		}
+ 		else
+ 		{
+@@ -102,11 +97,11 @@
+ 			var end_date = $("#end_year").val()+'-'+$("#end_month").val()+'-'+$('#end_day').val();
+ 	        if(input_type == null)
+ 	        {
+-	            window.location = window.location+'/'+start_date + '/'+ end_date + '/' + supplier_id;
++	            window.location = window.location+'/'+start_date + '/'+ end_date;
+ 	        }
+ 	        else
+ 	        {
+-			     window.location = window.location+'/'+start_date + '/'+ end_date+ '/' + input_type+ '/' + supplier_id;
++			     window.location = window.location+'/'+start_date + '/'+ end_date+ '/' + input_type;
+ 			}
+ 		}
+ 	});
+Only in pos-prod/application/views/sales: delete.php
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/sales/receipt.php opensourcepos/application/views/sales/receipt.php
+--- pos-prod/application/views/sales/receipt.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/sales/receipt.php	2016-05-23 15:30:07.658009902 -0700
+@@ -41,7 +41,7 @@
+ 	?>
+ 		<tr>
+ 		<td><?php echo $item['item_number']; ?></td>
+-		<td><span class='long_name'><?php echo $item['name']; ?></span><span class='short_name'><?php echo character_limiter($item['name'],70); ?></span></td>
++		<td><span class='long_name'><?php echo $item['name']; ?></span><span class='short_name'><?php echo character_limiter($item['name'],10); ?></span></td>
+ 		<td><?php echo to_currency($item['price']); ?></td>
+ 		<td style='text-align:center;'><?php 
+ 			echo $item['quantity'] . " " . ($show_stock_locations ? " [" . $item['stock_name'] . "]" : ""); 
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/sales/receipt_email.php opensourcepos/application/views/sales/receipt_email.php
+--- pos-prod/application/views/sales/receipt_email.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/application/views/sales/receipt_email.php	2016-05-23 15:30:07.658009902 -0700
+@@ -20,9 +20,9 @@
+ 
+ 	<table id="receipt_items">
+ 	<tr>
+-	<th style="width:25%;text-align:left;"><?php echo $this->lang->line('sales_item_number'); ?></th>
+-	<th style="width:25%;text-align:left;"><?php echo $this->lang->line('items_item'); ?></th>
+-	<th style="width:17%;text-align:left;"><?php echo $this->lang->line('common_price'); ?></th>
++	<th style="width:25%;"><?php echo $this->lang->line('sales_item_number'); ?></th>
++	<th style="width:25%;"><?php echo $this->lang->line('items_item'); ?></th>
++	<th style="width:17%;"><?php echo $this->lang->line('common_price'); ?></th>
+ 	<th style="width:16%;text-align:center;"><?php echo $this->lang->line('sales_quantity'); ?></th>
+ 	<th style="width:16%;text-align:center;"><?php echo $this->lang->line('sales_discount'); ?></th>
+ 	<th style="width:17%;text-align:right;"><?php echo $this->lang->line('sales_total'); ?></th>
+@@ -33,7 +33,7 @@
+ 	?>
+ 		<tr>
+ 		<td><?php echo $item['item_number']; ?></td>
+-		<td><?php echo $item['name']; ?></td>
++		<td><span class='long_name'><?php echo $item['name']; ?></span><span class='short_name'><?php echo character_limiter($item['name'],10); ?></span></td>
+ 		<td><?php echo to_currency($item['price']); ?></td>
+ 		<td style='text-align:center;'><?php echo $item['quantity']; ?></td>
+ 		<td style='text-align:center;'><?php echo $item['discount']; ?></td>
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/sales/register.php opensourcepos/application/views/sales/register.php
+--- pos-prod/application/views/sales/register.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/views/sales/register.php	2016-05-23 15:30:07.659009887 -0700
+@@ -78,7 +78,7 @@
+ 				<td colspan='8'>
+ 					<div class='warning_message' style='padding: 7px;'><?php echo $this->lang->line('sales_no_items_in_cart'); ?></div>
+ 			
+-			</td>
++			</tr>
+ 			</tr>
+ <?php
+ }
+diff -rBwi --ignore-file-name-case -u pos-prod/application/views/suppliers/manage.php opensourcepos/application/views/suppliers/manage.php
+--- pos-prod/application/views/suppliers/manage.php	2014-12-24 09:26:09.000000000 -0800
++++ opensourcepos/application/views/suppliers/manage.php	2016-05-23 15:30:07.659009887 -0700
+@@ -5,7 +5,7 @@
+     init_table_sorting();
+     enable_select_all();
+     enable_row_selection();
+-    enable_search('<?php echo site_url("$controller_name/suggest")?>','<?php echo $this->lang->line("common_confirm_search")?>',false);
++    enable_search('<?php echo site_url("$controller_name/suggest")?>','<?php echo $this->lang->line("common_confirm_search")?>');
+     enable_email('<?php echo site_url("$controller_name/mailto")?>');
+     enable_delete('<?php echo $this->lang->line($controller_name."_confirm_delete")?>','<?php echo $this->lang->line($controller_name."_none_selected")?>');
+ }); 
+@@ -21,9 +21,7 @@
+ 			headers: 
+ 			{ 
+ 				0: { sorter: false}, 
+-				2: { sorter: false},
+-				3: { sorter: false},
+-				4: { sorter: false}
++				6: { sorter: false} 
+ 			} 
+ 
+ 		}); 
+Only in pos-prod/css: editsale.css
+diff -rBwi --ignore-file-name-case -u pos-prod/database/2.2.2_to_2.3.sql opensourcepos/database/2.2.2_to_2.3.sql
+--- pos-prod/database/2.2.2_to_2.3.sql	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/database/2.2.2_to_2.3.sql	2016-05-23 15:30:07.660009872 -0700
+@@ -15,22 +15,22 @@
+ ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
+ 
+ ALTER TABLE ospos_inventory
+- ADD COLUMN trans_location int(11),
++ ADD COLUMN trans_location int(11) NOT NULL,
+  ADD KEY `trans_location` (`trans_location`),
+  ADD CONSTRAINT `ospos_inventory_ibfk_3` FOREIGN KEY (`trans_location`) REFERENCES `ospos_stock_locations` (`location_id`); 
+ 
+ -- ALTER TABLE ospos_items DROP COLUMN location;
+ 
+---INSERT INTO `ospos_stock_locations` ( `deleted`, `location_name` ) VALUES ('0', 'stock');
++INSERT INTO `ospos_stock_locations` ( `deleted`, `location_name` ) VALUES ('0', 'stock');
+ 
+ ALTER TABLE ospos_receivings_items
+- ADD COLUMN item_location int(11),
++ ADD COLUMN item_location int(11) NOT NULL,
+  ADD KEY `item_location` (`item_location`),
+  ADD CONSTRAINT `ospos_receivings_items_ibfk_3` FOREIGN KEY (`item_location`) REFERENCES `ospos_stock_locations` (`location_id`);
+  
+ 
+ ALTER TABLE ospos_sales_items
+- ADD COLUMN item_location int(11),
++ ADD COLUMN item_location int(11) NOT NULL,
+  ADD KEY `item_location` (`item_location`),
+  ADD KEY `sale_id` (`sale_id`),
+  ADD CONSTRAINT `ospos_sales_items_ibfk_3` FOREIGN KEY (`item_location`) REFERENCES `ospos_stock_locations` (`location_id`);
+@@ -42,7 +42,7 @@
+  ADD KEY `sale_id` (`sale_id`);
+ 
+ ALTER TABLE ospos_sales_suspended_items
+- ADD COLUMN item_location int(11),
++ ADD COLUMN item_location int(11) NOT NULL,
+  ADD KEY `item_location` (`item_location`),
+  ADD KEY `sale_id` (`sale_id`),
+  ADD CONSTRAINT `ospos_sales_suspended_items_ibfk_3` FOREIGN KEY (`item_location`) REFERENCES `ospos_stock_locations` (`location_id`);
+diff -rBwi --ignore-file-name-case -u pos-prod/database/2.3_migrate_locations.sql opensourcepos/database/2.3_migrate_locations.sql
+--- pos-prod/database/2.3_migrate_locations.sql	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/database/2.3_migrate_locations.sql	2016-05-09 13:21:31.841674113 -0700
+@@ -1,7 +1,2 @@
+-UPDATE `ospos_items` set custom1=NULL, custom2=NULL, custom3=NULL, custom4=NULL, custom5=NULL, custom6=NULL, custom7=null, custom8=NULL, custom9=NULL, custom10=NULL;
+-UPDATE ospos_items SET custom1=location;
+-UPDATE ospos_items SET location='PGS';
+-INSERT INTO `ospos_stock_locations` ( `deleted`, `location_name` ) VALUES ('0', 'stock');
+---INSERT INTO ospos_stock_locations (location_name) (SELECT location FROM ospos_items WHERE NOT EXISTS (select location from ospos_stock_locations where location_name = location));
+-INSERT INTO ospos_stock_locations (location_name) (SELECT DISTINCT location FROM ospos_items);
++INSERT INTO ospos_stock_locations (location_name) (SELECT location FROM ospos_items WHERE NOT EXISTS (select location from ospos_stock_locations where location_name = location));
+ INSERT INTO ospos_item_quantities (item_id, location_id, quantity) (SELECT item_id, location_id, quantity FROM ospos_items, ospos_stock_locations where ospos_items.location = ospos_stock_locations.location_name);
+diff -rBwi --ignore-file-name-case -u pos-prod/import_items.csv opensourcepos/import_items.csv
+--- pos-prod/import_items.csv	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/import_items.csv	2016-05-23 15:30:07.662009842 -0700
+@@ -1 +1,2 @@
+-UPC/EAN/ISBN,Item Name,Category,Supplier ID,Cost Price,Unit Price,Tax 1 Name,Tax 1 Percent,Tax 2 Name ,Tax 2 Percent,Quantity,Reorder Level,Location,Description,Allow Alt Description,Item has Serial Number33333333,Apple iMac,Computers,,800,1200,Tax 1,8,Tax 2,10,10,1,Earth,Best Computer ever,y,
+\ No newline at end of file
++UPC/EAN/ISBN,Item Name,Category,Supplier ID,Cost Price,Unit Price,Tax 1 Name,Tax 1 Percent,Tax 2 Name ,Tax 2 Percent,Quantity,Reorder Level,Location,Description,Allow Alt Description,Item has Serial Number,custom1,custom2,custom3,custom4,custom5,custom6,custom7,custom8,custom9,custom10
++33333333,Apple iMac,Computers,,800,1200,Tax 1,8,Tax 2,10,10,1,Earth,Best Computer ever,y,,"Oz, Frank",The Bunny and the Hill,"Monkeys,Giraffes,Gorillas",English,New,Apple,,1999,D3lk3jlkjs,Hardbound
+\ No newline at end of file
+diff -rBwi --ignore-file-name-case -u pos-prod/index.php opensourcepos/index.php
+--- pos-prod/index.php	2014-10-08 16:41:53.000000000 -0700
++++ opensourcepos/index.php	2016-05-23 15:30:07.662009842 -0700
+@@ -18,7 +18,7 @@
+  * NOTE: If you change these, also change the error_reporting() code below
+  *
+  */
+-	define('ENVIRONMENT', 'production');
++	define('ENVIRONMENT', 'development');
+ /*
+  *---------------------------------------------------------------
+  * ERROR REPORTING
+diff -rBwi --ignore-file-name-case -u pos-prod/js/manage_tables.js opensourcepos/js/manage_tables.js
+--- pos-prod/js/manage_tables.js	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/js/manage_tables.js	2016-05-23 15:30:07.664009812 -0700
+@@ -12,7 +12,7 @@
+ 	}
+ }
+ 
+-function enable_search(suggest_url,confirm_search_message,ac)
++function enable_search(suggest_url,confirm_search_message)
+ {
+ 	//Keep track of enable_email has been called
+ 	if(!enable_search.enabled)
+@@ -22,11 +22,8 @@
+     {
+     	$(this).attr('value','');
+     });
+-ac = typeof ac !== 'undefined' ? ac : true;
+-if(ac) 
+-{
++
+     $("#search").autocomplete(suggest_url,{max:100,delay:10, selectFirst: false});
+-    }
+     $("#search").result(function(event, data, formatted)
+     {
+ 		do_search(true);
+Only in pos-prod: README.txt
+Only in pos-prod/system: cache
+Only in pos-prod/system/language: english
+Only in pos-prod/system/language: indonesia
+Only in pos-prod/system/language: spanish
+Only in pos-prod/system/libraries: javascript
+diff -rBwi --ignore-file-name-case -u pos-prod/system/libraries/Session.php opensourcepos/system/libraries/Session.php
+--- pos-prod/system/libraries/Session.php	2014-10-07 18:38:13.000000000 -0700
++++ opensourcepos/system/libraries/Session.php	2016-05-23 15:30:07.678009601 -0700
+@@ -364,35 +364,6 @@
+ 			return;
+ 		}
+ 
+-		// _set_cookie() will handle this for us if we aren't using database sessions
+-		// by pushing all userdata to the cookie.
+-		$cookie_data = NULL;
+-
+-		/* Changing the session ID during an AJAX call causes problems,
+-		 * so we'll only update our last_activity
+-		 */
+-		if ($this->CI->input->is_ajax_request())
+-		{
+-			$this->userdata['last_activity'] = $this->now;
+-
+-			// Update the session ID and last_activity field in the DB if needed
+-			if ($this->sess_use_database === TRUE)
+-			{
+-				// set cookie explicitly to only have our session data
+-				$cookie_data = array();
+-				foreach (array('session_id','ip_address','user_agent','last_activity') as $val)
+-				{
+-					$cookie_data[$val] = $this->userdata[$val];
+-				}
+-
+-				$this->CI->db->query($this->CI->db->update_string($this->sess_table_name,
+-											array('last_activity' => $this->userdata['last_activity']),
+-											array('session_id' => $this->userdata['session_id'])));
+-			}
+-
+-			return $this->_set_cookie($cookie_data);
+-		}
+-
+ 		// Save the old session id so we know which record to
+ 		// update in the database if we need it
+ 		$old_sessid = $this->userdata['session_id'];
