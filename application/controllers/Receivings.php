@@ -16,7 +16,9 @@ class Receivings extends Secure_area
 
 	function item_search()
 	{
-		$suggestions = $this->Item->get_search_suggestions($this->input->get('term'));
+		$suggestions = $this->Item->get_search_suggestions($this->input->get('term'), array(
+			'search_custom' => FALSE, 'is_deleted' => FALSE
+		), TRUE);
 		$suggestions = array_merge($suggestions, $this->Item_kit->get_search_suggestions($this->input->get('term')));
 		echo json_encode($suggestions);
 	}
@@ -360,11 +362,11 @@ class Receivings extends Secure_area
 	
 	function save($receiving_id)
 	{
-		$date_formatter = date_create_from_format($this->config->item('dateformat') . ' ' . $this->config->item('timeformat'), $this->input->post('date', TRUE));
+		$date_formatter = date_create_from_format($this->config->item('dateformat') . ' ' . $this->config->item('timeformat'), $this->input->post('date'));
 
 		$receiving_data = array(
 			'receiving_time' => $date_formatter->format('Y-m-d H:i:s'),
-			'supplier_id' => $this->input->post('supplier_id', TRUE) ? $this->input->post('supplier_id') : null,
+			'supplier_id' => $this->input->post('supplier_id') ? $this->input->post('supplier_id') : null,
 			'employee_id' => $this->input->post('employee_id'),
 			'comment' => $this->input->post('comment'),
 			'invoice_number' => $this->input->post('invoice_number')
